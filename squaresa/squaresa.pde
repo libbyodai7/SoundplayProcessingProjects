@@ -11,10 +11,32 @@ float duration;
   float smoothedDist;
   float newDist;
   float easing = 0.05;
+  
+  //minim vars
+  
+  import ddf.minim.*;
+import ddf.minim.ugens.*;
+
+Minim       minim;
+AudioOutput out;
+Oscil       wave;
+
 
 void setup() {
   size(640, 320);
   textSize(32);
+  
+    
+  minim = new Minim(this);
+  
+  // use the getLineOut method of the Minim object to get an AudioOutput object
+  out = minim.getLineOut();
+  
+  //can change waveform 
+    wave = new Oscil( 440, 0.5f, Waves.TRIANGLE);
+  // patch the Oscil to the output
+  wave.patch( out );
+  
   GPIO.pinMode(GPIO_TRIGGER,GPIO.OUTPUT);
   GPIO.pinMode(GPIO_ECHO,GPIO.INPUT);
   thread("get_sensor");
@@ -25,26 +47,39 @@ void setup() {
 
 void draw(){
   
+  if(timeElapsed > 10) {
+    timeElapsed = 10.0; 
+  }
+  
   smoothedDist += (timeElapsed - smoothedDist) * easing;
   newDist = 20 - smoothedDist;
+  
+ // println(timeElapsed);
+  println(smoothedDist);
+  
+    float amp = map( smoothedDist * 10, 0, height, 1, 0 );
+  wave.setAmplitude( amp );
+  
+  float freq = map( smoothedDist * 10, 0, width, 110, 880 );
+  wave.setFrequency( freq );
   
   background(0);
   
   noFill();
-  stroke(255, 255, 255);
+  stroke(10, 200, 255);
   
     pushMatrix();
        rectMode(CENTER);
         translate(width/2, height/2);
-        rect(0, 0, newDist *5, newDist * 5);
+        rect(0, 0, newDist *10, newDist * 10);
         // Rotation formula based on brightness
         rotate((2 * PI * newDist / 255.0));
         
-         rect(0, 0, newDist *5 , newDist * 5);
+         rect(0, 0, newDist * 10 , newDist * 10);
         // Rotation formula based on brightness
         rotate((2 * PI * newDist / 255.0));
          
-         rect(0, 0, newDist *5 , newDist *5);
+         rect(0, 0, newDist * 10 , newDist * 10);
         // Rotation formula based on brightness
         rotate((2 * PI * newDist / 255.0));
      
@@ -73,7 +108,7 @@ void digital_writing_loop() {
    // println(timeStop);
   }
  timeElapsed= timeStop - timeStart;
-println(timeElapsed);
+//println(timeElapsed);
 
 
   //distance = (timeElapsed  * 0.034)/2;
